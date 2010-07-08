@@ -692,7 +692,7 @@ void FileStore::configure(pStoreConf configuration, pStoreConf parent) {
 bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
   bool success = false;
   struct tm timeinfo;
-
+  LOG_OPER("In openInternal. Increment Filename: %d", incrementFilename);
   if (!current_time) {
     time_t rawtime = time(NULL);
     localtime_r(&rawtime, &timeinfo);
@@ -701,9 +701,11 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
 
   try {
     int suffix = findNewestFile(makeBaseFilename(current_time));
+    LOG_OPER("In openInternal. findNewestFile returned suffix %d", suffix);
 
     if (incrementFilename) {
       ++suffix;
+      LOG_OPER("In openInternal. incrementFilename = true, so suffix is %d", suffix);
     }
 
     // this is the case where there's no file there and we're not incrementing
@@ -712,7 +714,7 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
     }
 
     string file = makeFullFilename(suffix, current_time);
-
+    LOG_OPER("In openInternal. full filename is %s", file.c_str());
     switch (rollPeriod) {
       case ROLL_DAILY:
         lastRollTime = current_time->tm_mday;
