@@ -1175,6 +1175,8 @@ void ThriftFileStore::flush() {
 bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_time) {
   struct tm timeinfo;
 
+  LOG_DEBUG("In openInternal. Increment Filename: %d", incrementFilename);
+
   if (!current_time) {
     time_t rawtime = time(NULL);
     localtime_r(&rawtime, &timeinfo);
@@ -1183,6 +1185,7 @@ bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_ti
   int suffix;
   try {
     suffix = findNewestFile(makeBaseFilename(current_time));
+    LOG_DEBUG("findNewestFile returned suffix %d", suffix);
   } catch(const std::exception& e) {
     LOG_OPER("Exception < %s > in ThriftFileStore::openInternal",
       e.what());
@@ -1191,6 +1194,7 @@ bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_ti
 
   if (incrementFilename) {
     ++suffix;
+    LOG_DEBUG("incrementFilename, so suffix is %d", suffix);
   }
 
   // this is the case where there's no file there and we're not incrementing
@@ -1199,6 +1203,7 @@ bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_ti
   }
 
   string filename = makeFullFilename(suffix, current_time);
+  LOG_DEBUG("final filename is %s", filename.c_str());
   /* try to create the directory containing the file */
   if (!createFileDirectory()) {
     LOG_OPER("[%s] Could not create path for file: %s",
