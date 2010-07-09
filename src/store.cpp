@@ -1601,8 +1601,10 @@ void BufferStore::periodicCheck() {
     // if queue size is getting large return so that there is time to forward
     // incoming messages directly to the primary store without buffering to
     // secondary store.
+    LOG_OPER("State SENDING_BUFFER. flushStreaming is: %d", flushStreaming);
     if (flushStreaming) {
       uint64_t qsize = storeQueue->getSize();
+      LOG_OPER("qsize: %ld; maxByPassRatio: %f; maxQSize: %ld.", qsize, maxByPassRatio, g_Handler->getMaxQueueSize());
       if(qsize >=
           maxByPassRatio * g_Handler->getMaxQueueSize()) {
         return;
@@ -1649,6 +1651,7 @@ void BufferStore::periodicCheck() {
                   secondaryStore->deleteOldest(&nowinfo);
                 }
               }
+              LOG_OPER("Changing state to DISCONNECTED");
               changeState(DISCONNECTED);
               break;
             }
@@ -1664,7 +1667,7 @@ void BufferStore::periodicCheck() {
               categoryHandled.c_str());
           break;
         }
-
+        LOG_OPER("[%s] Checking if secondaryStore is empty", categoryHandled.c_str());
         if (secondaryStore->empty(&nowinfo)) {
           LOG_OPER("[%s] No more buffer files to send, switching to streaming mode",
               categoryHandled.c_str());
@@ -1672,6 +1675,7 @@ void BufferStore::periodicCheck() {
 
           break;
         }
+        LOG_OPER("[%s] secondaryStore is not empty!", categoryHandled.c_str());
       }
     } catch(const std::exception& e) {
       LOG_OPER("[%s] Failed in secondary to primary transfer ",
